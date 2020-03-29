@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>DATABASE</ID>
+  <OriginalElement>0d58d87c-9db0-4037-a9e6-051e15f8e9dd.SCHEMA:magvd_imdb.public</OriginalElement>
+  <nodes>
+    <node x="0.0" y="0.0">0d58d87c-9db0-4037-a9e6-051e15f8e9dd.TABLE:magvd_imdb.public.old_title.basics</node>
+    <node x="197.0" y="268.0">0d58d87c-9db0-4037-a9e6-051e15f8e9dd.TABLE:magvd_imdb.public.title.episode</node>
+    <node x="0.0" y="488.0">0d58d87c-9db0-4037-a9e6-051e15f8e9dd.TABLE:magvd_imdb.public.title.crew</node>
+    <node x="246.0" y="0.0">0d58d87c-9db0-4037-a9e6-051e15f8e9dd.TABLE:magvd_imdb.public.title.akas</node>
+    <node x="439.0" y="268.0">0d58d87c-9db0-4037-a9e6-051e15f8e9dd.TABLE:magvd_imdb.public.title.ratings</node>
+    <node x="0.0" y="268.0">0d58d87c-9db0-4037-a9e6-051e15f8e9dd.TABLE:magvd_imdb.public.title.principals</node>
+  </nodes>
+  <notes />
+  <edges />
+  <settings layout="Hierarchic Group" zoom="1.0" x="315.5" y="296.0" />
+  <SelectedNodes>
+    <node>0d58d87c-9db0-4037-a9e6-051e15f8e9dd.TABLE:magvd_imdb.public.old_title.basics</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>Key columns</Category>
+    <Category>Columns</Category>
+    <Category>Virtual foreign keys</Category>
+  </Categories>
+</Diagram>
+
