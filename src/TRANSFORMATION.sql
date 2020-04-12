@@ -94,26 +94,41 @@ order by directors ASC
 CREATE OR REPLACE TEMPORARY VIEW actors AS ();
 
 
+select
+    t.nconst as idActor
+    ,"primaryName"
+    ,"birthYear"
+    ,"deathYear"
+    ,lower(split_part("primaryProfession",',',1)) as alternativeProfession1
+    ,lower(split_part("primaryProfession",',',2)) as alternativeProfession2
+    ,lower(split_part("primaryProfession",',',3)) as alternativeProfession3
+    ,"knownForTitles"
+    ,job
+    ,characters
+from "title.principals" t
+         LEFT join  "name.basics" b on b.nconst= t.nconst
+;
 
 -- //-------------------------------------------------------------------//
--- //------------ Get all Writers and Directors       ------------------//
+-- //------------     CREATE TEMP VIEW TITLES         ------------------//
 -- //-------------------------------------------------------------------//
-WITH writers_directors AS (
-    SELECT "tconst"
-         ,lower(unnest(string_to_array(directors, ','))) AS directors
-         ,lower(unnest(string_to_array(writers, ','))) AS writers
-    FROM "title.crew")
-SELECT "tconst"
-     ,(CASE WHEN directors IS NOT NULL
-                THEN directors
-            ELSE 'unknow'
-    END) AS directors
-     ,(CASE WHEN writers IS NOT NULL
-                THEN writers
-            ELSE 'unknow'
-    END) AS writers
-FROM writers_directors;
+CREATE OR REPLACE TEMPORARY VIEW TITLES AS ();
 
+select
+    t.tconst as idPelicula
+     ,"primaryTitle"
+     ,"originalTitle"
+     ,"isAdult"
+     ,t."startYear" AS releaseYear
+     ,"runtimeMinutes"
+from "title.basics" t
+WHERE T."titleType" = 'movie'
+;
+
+-- count titles by
+select count (tconst), "titleType"
+from "title.basics" t
+group by  "titleType";
 -- //-------------------------------------------------------------------//
 -- //-----------------------   UTILS QUERY       -----------------------//
 -- //-------------------------------------------------------------------//
