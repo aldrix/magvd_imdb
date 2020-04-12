@@ -1,5 +1,3 @@
-
-
 -- //-------------------------------------------------------------------//
 -- //--------------------       Get all Genre         ------------------//
 -- //-------------------------------------------------------------------//
@@ -57,7 +55,7 @@ FROM genres2
 ORDER BY genres ASC ;
 
 -- dim_genre
-CREATE OR REPLACE TEMPORARY VIEW dim_genders AS (
+CREATE OR REPLACE TEMPORARY VIEW genres3 AS (
                                                 WITH genres2 AS (
                                                     select genres
                                                          ,(CASE WHEN split_part(genres,',',1) = ''
@@ -84,6 +82,7 @@ CREATE OR REPLACE TEMPORARY VIEW dim_genders AS (
                                                 FROM genres2
                                                 ORDER BY genres ASC);
 
+CREATE TABLE dim_genders as (select * from genres);
 -- //-------------------------------------------------------------------//
 -- //----------- CREATE TEMP VIEW writers_directors   ------------------//
 -- //-------------------------------------------------------------------//
@@ -116,6 +115,18 @@ CREATE OR REPLACE TEMPORARY VIEW directors AS(
                                              where directors != 'unknow'
                                              ORDER BY  directors ASC
                                                  );
+select count(*) from directors;
+--5081482
+
+--count distinct directors without repeated values
+WITH direc AS (select distinct directors
+from writers_directors
+where directors != 'unknow'
+ORDER BY  directors ASC)
+select count(*) from direc;
+-- 608495
+
+
 
 -- Get directors information
 CREATE OR REPLACE TEMPORARY VIEW directors2 AS (
@@ -131,35 +142,34 @@ CREATE OR REPLACE TEMPORARY VIEW directors2 AS (
                                                        LEFT join  "name.basics" on directors= nconst
                                               where directors != 'unknow'
                                               order by directors ASC
-                                                  );
+                                                );
 
-SELECT DISTINCT
-    directors AS idDirector
-     ,"primaryName"
-     ,"birthYear"
-     ,"deathYear"
-     ,lower(split_part("primaryProfession",',',1)) as alternativeProfession1
-     ,lower(split_part("primaryProfession",',',2)) as alternativeProfession2
-     ,lower(split_part("primaryProfession",',',3)) as alternativeProfession3
-from directors
-         LEFT join  "name.basics" on directors= nconst
-where directors != 'unknow'
-order by directors ASC;
+select count(*) from directors2;
+-- 608495
 
-CREATE OR REPLACE TEMPORARY VIEW directors AS (
-
-                                              );
+CREATE TABLE dim_directors as (select * from directors2);
 -- //-------------------------------------------------------------------//
 -- //--------------- CREATE TEMP VIEW writers  -------------------------//
 -- //-------------------------------------------------------------------//
-CREATE OR REPLACE TEMPORARY VIEW directors AS(
-                                             select distinct tconst, directors
-                                             from writers_directors
-                                             where directors != 'unknow'
-                                             ORDER BY  directors ASC
-);
+CREATE OR REPLACE TEMPORARY VIEW writers AS(
+                                           select distinct tconst, writers
+                                           from writers_directors
+                                           where writers != 'unknow'
+                                           ORDER BY  writers ASC
+                                               );
 
-CREATE OR REPLACE TEMPORARY VIEW writers AS (
+select count(*) from writers;
+--7803621
+
+--count distinct writers without repeated values
+WITH direc AS (select distinct writers
+               from writers_directors
+               where writers != 'unknow'
+               ORDER BY  writers ASC)
+select count(*) from direc;
+--770209
+
+CREATE OR REPLACE TEMPORARY VIEW writers2 AS (
     SELECT DISTINCT
         writers as idWriter
          ,"primaryName"
@@ -168,69 +178,111 @@ CREATE OR REPLACE TEMPORARY VIEW writers AS (
          ,lower(split_part("primaryProfession",',',1)) as alternativeProfession1
          ,lower(split_part("primaryProfession",',',2)) as alternativeProfession2
          ,lower(split_part("primaryProfession",',',3)) as alternativeProfession3
-    from
+    from writers
              LEFT join  "name.basics" on writers= nconst
     where writers != 'unknow'
     order by writers ASC
 );
 
-SELECT DISTINCT
-    writers as idWriter
-     ,"primaryName"
-     ,"birthYear"
-     ,"deathYear"
-     ,lower(split_part("primaryProfession",',',1)) as alternativeProfession1
-     ,lower(split_part("primaryProfession",',',2)) as alternativeProfession2
-     ,lower(split_part("primaryProfession",',',3)) as alternativeProfession3
-from writers_directors
-         LEFT join  "name.basics" on writers= nconst
-where writers != 'unknow'
-order by writers ASC;
+select count(*) from writers2;
+-- 770209
 
-
-
--- //-------------------------------------------------------------------//
--- //--------------- CREATE TEMP VIEW ACTORS     -----------------------//
--- //-------------------------------------------------------------------//
-CREATE OR REPLACE TEMPORARY VIEW actors AS ();
-
-
-select
-    t.nconst as idActor
-    ,"primaryName"
-    ,"birthYear"
-    ,"deathYear"
-    ,lower(split_part("primaryProfession",',',1)) as alternativeProfession1
-    ,lower(split_part("primaryProfession",',',2)) as alternativeProfession2
-    ,lower(split_part("primaryProfession",',',3)) as alternativeProfession3
-    ,"knownForTitles"
-    ,job
-    ,characters
-from "title.principals" t
-         LEFT join  "name.basics" b on b.nconst= t.nconst
-;
-
+CREATE TABLE dim_writers2 as (select * from writers2);
 -- //-------------------------------------------------------------------//
 -- //------------     CREATE TEMP VIEW TITLES         ------------------//
 -- //-------------------------------------------------------------------//
-CREATE OR REPLACE TEMPORARY VIEW TITLES AS ();
-
-select
-    t.tconst as idPelicula
-     ,"primaryTitle"
-     ,"originalTitle"
-     ,"isAdult"
-     ,t."startYear" AS releaseYear
-     ,"runtimeMinutes"
-from "title.basics" t
-WHERE T."titleType" = 'movie'
-;
+CREATE OR REPLACE TEMPORARY VIEW titles AS (
+                                           select
+                                               t.tconst as idPelicula
+                                                ,"primaryTitle"
+                                                ,"originalTitle"
+                                                ,"isAdult"
+                                                ,t."startYear" AS releaseYear
+                                                ,"runtimeMinutes"
+                                           from "title.basics" t
+                                           WHERE T."titleType" = 'movie'
+                                           );
 
 -- count titles by
 select count (tconst), "titleType"
 from "title.basics" t
 group by  "titleType";
 
+select * from titles;
+
+CREATE TABLE dim_titles AS (select * from titles);
+
+-- //-------------------------------------------------------------------//
+-- //--------------- CREATE TEMP VIEW ACTORS     -----------------------//
+-- //-------------------------------------------------------------------//
+CREATE OR REPLACE TEMPORARY VIEW actors AS (
+                                           select *
+                                           from titles t
+                                                    LEFT JOIN "title.principals" p on t.idPelicula = p.tconst
+                                           );
+
+SELECT * FROM  actors;
+
+CREATE OR REPLACE TEMPORARY VIEW actors AS (
+                                           select
+                                               t.nconst as idActor
+                                                ,"primaryName"
+                                                ,"birthYear"
+                                                ,"deathYear"
+                                                ,(CASE WHEN split_part("primaryProfession",',',1) = ''
+                                                           THEN 'unknow'
+                                                       ELSE  split_part("primaryProfession",',',1)
+                                               END) AS alternativeProfession1
+                                                ,(CASE WHEN split_part("primaryProfession",',',2) = ''
+                                                           THEN 'unknow'
+                                                       ELSE  split_part("primaryProfession",',',2)
+                                               END) AS alternativeProfession2
+                                                ,(CASE WHEN split_part("primaryProfession",',',3) = ''
+                                                           THEN 'unknow'
+                                                       ELSE  split_part("primaryProfession",',',3)
+                                               END) AS alternativeProfession3
+                                                ,"knownForTitles"
+                                                ,job
+                                                ,characters
+                                           from "title.principals" t
+                                                    LEFT JOIN  "name.basics" b on b.nconst= t.nconst
+                                           WHERE t.category = 'movie'
+                                           ORDER BY  t.nconst ASC
+                                           );
+
+CREATE OR REPLACE TEMPORARY VIEW actors2 AS (
+                                            select *
+                                            from actors
+                                            where category in ('writer',
+                                                               'director',
+                                                               'actress',
+                                                               'actor')
+    );
+
+CREATE OR REPLACE TEMPORARY VIEW actors3 AS (
+                                            select *
+                                            from actors
+                                            where category in ('actress',
+                                                               'actor')
+                                                );
+
+
+-- Just Actors
+SELECT count(*) FROM  actors3;
+-- 1716530
+
+--writer
+CREATE OR REPLACE TEMPORARY VIEW actors3 AS (
+                                            select *
+                                            from actors
+                                            where category in ('actress',
+                                                               'actor')
+                                                );
+
+select * from actors3;
+-- 1716530
+
+CREATE TABLE dim_actors as (select * from actors3);
 
 -- //-------------------------------------------------------------------//
 -- //-----------------------   UTILS QUERY       -----------------------//
@@ -247,3 +299,8 @@ from "title.basics";
 select tconst
      , lower(unnest(string_to_array(genres, ','))) as gender
 from "title.basics";
+
+writer
+director
+actress
+actor
