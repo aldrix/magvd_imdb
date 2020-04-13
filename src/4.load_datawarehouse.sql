@@ -1,5 +1,5 @@
 
-WITH temp_count AS (
+-- WITH temp_count AS (
     SELECT DISTINCT
         title_id
                   ,CASE  WHEN genres_id IS NULL
@@ -22,12 +22,14 @@ WITH temp_count AS (
              LEFT JOIN "title.ratings" r ON t.idpelicula = r.tconst
              LEFT JOIN staging.dim_genres g ON g.genres_all = t.genres
              LEFT JOIN "title.principals" p ON p.tconst = t.idpelicula
-             LEFT JOIN staging.writers_directors wd ON wd.tconst = t.idpelicula
-             LEFT JOIN staging.dim_writers w ON w.idwriter = wd.writers
-             LEFT JOIN staging.dim_directors d ON d.iddirector = wd.directors
+             LEFT JOIN staging.dim_w wd1 ON wd1.tconst = t.idpelicula
+             LEFT JOIN staging.dim_d wd2 ON wd2.tconst = t.idpelicula
+             LEFT JOIN staging.dim_writers w ON w.idwriter = wd1.writers
+             LEFT JOIN staging.dim_directors d ON d.iddirector = wd2.directors
              LEFT JOIN staging.dim_actors a ON a.idactor = p.nconst
-)SELECT count(*)
-FROM temp_count
+WHERE  title_id = 2
+-- )SELECT count(*)
+-- FROM temp_count
 ;
 
 
@@ -64,7 +66,7 @@ CREATE TABLE staging.fact_rating AS (
 );
 
 -- Check data
-SELECT * FROM staging.fact_rating WHERE idpelicula='tt0098039';
+SELECT * FROM staging.fact_rating WHERE idpelicula='tt0097942';
 
 SELECT * FROM staging.dim_actors WHERE idactor='tt0098039';
 
@@ -81,11 +83,75 @@ select * from staging.writers_directors where tconst ='tt0097942';
 
 select * from staging.dim_writers where idwriter = 'nm0000464';
 
-select * from staging.dim_genres where genres1_2='Unknow,Unknow'
+select * from staging.dim_genres where genres1_2='Unknow,Unknow';
 
 
 -- 12 338 928
 SELECT title_id,  count(actor_id), count(genres_id), count(director_id), count(writer_id)
 FROM staging.fact_rating
-where title_id = 2
+where title_id = 3
 group by title_id;
+
+SELECT actor_id, count(actor_id), director_id, count(genres_id)
+FROM staging.fact_rating
+where title_id = 3
+group by director_id, actor_id;
+
+-- WITH  fr
+INSERT INTO pro.fact_rating
+    SELECT
+         title_id
+         ,genres_id
+         ,actor_id
+         ,director_id
+         ,writer_id
+         ,average_rating
+         ,num_votes
+         FROM staging.fact_rating3
+         WHERE actor_id is not null or
+             writer_id IS NOT NULL OR
+             director_id IS NOT NULL
+     ;
+-- SELECT count(*) FROM fr;
+
+
+CREATE  TABLE staging.fact_rating1 AS (
+    SELECT
+        title_id
+        ,genres_id
+        ,actor_id
+        ,director_id
+        ,writer_id
+        ,average_rating
+        ,num_votes
+    FROM staging.fact_rating
+    WHERE actor_id is not null
+);
+
+CREATE  TABLE staging.fact_rating2 AS (
+    SELECT
+        title_id
+         ,genres_id
+         ,actor_id
+         ,director_id
+         ,writer_id
+         ,average_rating
+         ,num_votes
+    FROM staging.fact_rating1
+    WHERE  writer_id IS NOT NULL
+);
+
+CREATE  TABLE staging.fact_rating3 AS (
+    SELECT
+        title_id
+         ,genres_id
+         ,actor_id
+         ,director_id
+         ,writer_id
+         ,average_rating
+         ,num_votes
+    FROM staging.fact_rating2
+    WHERE director_id IS NOT NULL
+);
+
+ALTER TABLE staging.dim_writers set schema pro;

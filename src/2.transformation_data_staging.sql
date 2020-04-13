@@ -215,6 +215,38 @@ SELECT * FROM  actors2;
 
 CREATE TABLE staging.dim_actors as (select * from actors2);
 -- //-------------------------------------------------------------------//
+-- //-----------------------   CROSS       -----------------------//
+-- //-------------------------------------------------------------------//
+CREATE TEMPORARY VIEW wd_titles AS (
+                                   select
+                                       wd.tconst
+                                        ,wd.directors
+                                        ,wd.writers
+                                   from writers_directors wd
+                                            LEFT JOIN titles t ON  t.idPelicula = wd.tconst
+
+
+    );
+
+with a as(
+    select * from writers_directors
+                      LEFT JOIN titles ON  tconst = tconst
+) SELECT count(*) FROM a;
+
+
+CREATE OR REPLACE TEMPORARY VIEW writers AS(select tconst,writers from wd_titles WHERE writers is not  null);
+CREATE OR REPLACE TEMPORARY VIEW directors AS(select tconst,directors from wd_titles WHERE directors is not  null);
+
+CREATE table dim_w AS (
+    SELECT *
+    FROM writers w);
+
+-- drop table staging.dim_d;
+CREATE table staging.dim_d AS (
+    SELECT *
+    FROM directors w);
+
+-- //-------------------------------------------------------------------//
 -- //-----------------------   UTILS QUERY       -----------------------//
 -- //-------------------------------------------------------------------//
 -- Old Get genres
