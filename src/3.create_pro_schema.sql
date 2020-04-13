@@ -4,7 +4,7 @@ comment on schema pro is 'production datawarehouse schema';
 
 alter schema pro owner to postgres;
 
-create table if not exists dim_genres
+create table if not exists pro.dim_genres
 (
 	genres_id serial not null
 		constraint dim_genres_pkey
@@ -18,9 +18,9 @@ create table if not exists dim_genres
 	genres3 text
 );
 
-alter table dim_genres owner to postgres;
+alter table pro.dim_genres owner to postgres;
 
-create table if not exists dim_directors
+create table if not exists pro.dim_directors
 (
 	director_id serial not null
 		constraint dim_directors_pkey
@@ -34,9 +34,9 @@ create table if not exists dim_directors
 	profession3 text
 );
 
-alter table dim_directors owner to postgres;
+alter table pro.dim_directors owner to postgres;
 
-create table if not exists dim_writers
+create table if not exists pro.dim_writers
 (
 	writer_id serial not null
 		constraint dim_writers_pkey
@@ -50,9 +50,9 @@ create table if not exists dim_writers
 	profession3 text
 );
 
-alter table dim_writers owner to postgres;
+alter table pro.dim_writers owner to postgres;
 
-create table if not exists dim_titles
+create table if not exists pro.dim_titles
 (
 	title_id serial not null
 		constraint dim_titles_pkey
@@ -66,9 +66,9 @@ create table if not exists dim_titles
 	genres text
 );
 
-alter table dim_titles owner to postgres;
+alter table pro.dim_titles owner to postgres;
 
-create table if not exists dim_actors
+create table if not exists pro.dim_actors
 (
 	actor_id serial not null
 		constraint dim_actors_pkey
@@ -84,30 +84,30 @@ create table if not exists dim_actors
 	job text
 );
 
-alter table dim_actors owner to postgres;
+alter table pro.dim_actors owner to postgres;
 
-create table if not exists fact_rating
+create table if not exists pro.fact_rating
 (
-	title_id integer not null
-		constraint title_id_fk
-			references dim_titles,
-	genres_id integer not null
-		constraint genres_id_fk
-			references dim_genres,
-	actor_id integer not null
-		constraint actor_id_fk
-			references dim_actors,
-	director_id integer not null
-		constraint director_id_fk
-			references dim_directors,
-	writer_id integer not null
-		constraint writer_id_fk
-			references dim_writers,
-	average_rating numeric,
-	num_votes integer,
-	constraint fact_rating_pkey
-		primary key (title_id, genres_id, actor_id, director_id, writer_id)
+    title_id integer not null
+        constraint title_id_fk
+            references pro.dim_titles,
+    genres_id integer not null
+        constraint genres_id_fk
+            references pro.dim_genres,
+    actor_id integer not null
+        constraint actor_id_fk
+            references pro.dim_actors,
+    director_id integer not null
+        constraint director_id_fk
+            references pro.dim_directors,
+    writer_id integer not null
+        constraint writer_id_fk
+            references pro.dim_writers,
+    average_rating numeric,
+    num_votes integer,
+    constraint fact_rating_pkey
+        primary key (title_id, genres_id, actor_id, director_id, writer_id)
 );
 
-alter table fact_rating owner to postgres;
+alter table pro.fact_rating owner to postgres;
 
