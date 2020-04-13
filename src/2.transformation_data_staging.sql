@@ -1,17 +1,6 @@
 -- //-------------------------------------------------------------------//
--- //--------------------       Get all Genre         ------------------//
+-- //--------------------       Get all Genres         ------------------//
 -- //-------------------------------------------------------------------//
-CREATE OR REPLACE TEMPORARY VIEW genress AS (
-                                            select DISTINCT lower(unnest(string_to_array(genres, ','))) as genres
-                                            from "title.basics"
-                                                );
-
-WITH genres AS (select DISTINCT genres AS genres
-                from "title.basics")
-SELECT count(*)
-FROM genres
-WHERE genres IS NOT NULL;
-
 -- CREATE genres TEMPVIEW
 CREATE OR REPLACE TEMPORARY VIEW genres AS (
                                            select DISTINCT genres AS genres
@@ -19,9 +8,10 @@ CREATE OR REPLACE TEMPORARY VIEW genres AS (
                                            WHERE genres IS NOT NULL
                                                );
 
--- set unknow in genres
--- dim_genre
-CREATE OR REPLACE TEMPORARY VIEW genres3 AS (
+SELECT count(*) FROM genres;
+
+
+CREATE OR REPLACE TEMPORARY VIEW genres2 AS (
                                             WITH genres2 AS (
                                                 select genres
                                                      ,(CASE WHEN split_part(genres,',',1) = ''
@@ -36,7 +26,7 @@ CREATE OR REPLACE TEMPORARY VIEW genres3 AS (
                                                                 THEN 'Unknow'
                                                             ELSE  split_part(genres,',',3)
                                                     END) AS genres3
-                                                FROM genress)
+                                                FROM genres)
                                             SELECT
                                                 genres
                                                  ,concat(genres1, ',', genres2) as genres1_2
@@ -46,9 +36,9 @@ CREATE OR REPLACE TEMPORARY VIEW genres3 AS (
                                                  ,genres2
                                                  ,genres3
                                             FROM genres2
-                                            ORDER BY genres ASC;);
+                                            ORDER BY genres ASC);
 
-CREATE TABLE dim_genress as (select * from genres);
+CREATE TABLE staging.dim_genres as (select * from genres);
 -- //-------------------------------------------------------------------//
 -- //----------- CREATE TEMP VIEW writers_directors   ------------------//
 -- //-------------------------------------------------------------------//
@@ -113,7 +103,7 @@ CREATE OR REPLACE TEMPORARY VIEW directors2 AS (
 select count(*) from directors2;
 -- 608495
 
-CREATE TABLE dim_directors as (select * from directors2);
+CREATE TABLE staging.dim_directors as (select * from directors2);
 -- //-------------------------------------------------------------------//
 -- //--------------- CREATE TEMP VIEW writers  -------------------------//
 -- //-------------------------------------------------------------------//
@@ -153,7 +143,7 @@ CREATE OR REPLACE TEMPORARY VIEW writers2 AS (
 select count(*) from writers2;
 -- 770209
 
-CREATE TABLE dim_writers2 as (select * from writers2);
+CREATE TABLE staging.dim_writers2 as (select * from writers2);
 -- //-------------------------------------------------------------------//
 -- //------------     CREATE TEMP VIEW TITLES         ------------------//
 -- //-------------------------------------------------------------------//
@@ -176,7 +166,7 @@ group by  "titleType";
 
 select * from titles;
 
-CREATE TABLE dim_titles AS (select * from titles);
+CREATE TABLE staging.dim_titles AS (select * from titles);
 
 -- //-------------------------------------------------------------------//
 -- //--------------- CREATE TEMP VIEW ACTORS     -----------------------//
@@ -223,7 +213,7 @@ CREATE OR REPLACE TEMPORARY VIEW actors2 AS (
 
 SELECT * FROM  actors2;
 
-CREATE TABLE dim_actors as (select * from actors2);
+CREATE TABLE staging.dim_actors as (select * from actors2);
 -- //-------------------------------------------------------------------//
 -- //-----------------------   UTILS QUERY       -----------------------//
 -- //-------------------------------------------------------------------//
