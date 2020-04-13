@@ -6,14 +6,6 @@ select DISTINCT lower(unnest(string_to_array(genres, ','))) as gender
 from "title.basics"
 );
 
-WITH g AS (select  genres AS genres
-     ,count(tconst)
-from "title.basics"
-WHERE  genres is not null
-group by genres)
-SELECT count(*)
-FROM g;
-
 WITH genres AS (select DISTINCT genres AS genres
 from "title.basics")
 SELECT count(*)
@@ -21,13 +13,14 @@ FROM genres
 WHERE genres IS NOT NULL;
 
 -- Creamos primera temview de genres
-CREATE OR REPLACE TEMPORARY VIEW genders AS (
+CREATE OR REPLACE TEMPORARY VIEW genres AS (
     select DISTINCT genres AS genres
     from "title.basics"
     WHERE genres IS NOT NULL
 );
 
 -- set unknow in genres
+-- DROP VIEW genres2;
 WITH genres2 AS (
     select genres
          ,(CASE WHEN split_part(genres,',',1) = ''
@@ -52,12 +45,13 @@ SELECT
     ,gender2
     ,gender3
 FROM genres2
-ORDER BY genres ASC ;
+ORDER BY genres ASC;
 
 -- dim_genre
 CREATE OR REPLACE TEMPORARY VIEW genres3 AS (
                                                 WITH genres2 AS (
-                                                    select genres
+                                                    select
+                                                        ,genres
                                                          ,(CASE WHEN split_part(genres,',',1) = ''
                                                                     THEN 'Unknow'
                                                                 ELSE  split_part(genres,',',1)
@@ -216,74 +210,48 @@ CREATE TABLE dim_titles AS (select * from titles);
 -- //--------------- CREATE TEMP VIEW ACTORS     -----------------------//
 -- //-------------------------------------------------------------------//
 CREATE OR REPLACE TEMPORARY VIEW actors AS (
-                                           select *
-                                           from titles t
-                                                    LEFT JOIN "title.principals" p on t.idPelicula = p.tconst
-                                           );
-
-SELECT * FROM  actors;
-
-CREATE OR REPLACE TEMPORARY VIEW actors AS (
                                            select
-                                               t.nconst as idActor
-                                                ,"primaryName"
-                                                ,"birthYear"
-                                                ,"deathYear"
-                                                ,(CASE WHEN split_part("primaryProfession",',',1) = ''
-                                                           THEN 'unknow'
-                                                       ELSE  split_part("primaryProfession",',',1)
-                                               END) AS alternativeProfession1
-                                                ,(CASE WHEN split_part("primaryProfession",',',2) = ''
-                                                           THEN 'unknow'
-                                                       ELSE  split_part("primaryProfession",',',2)
-                                               END) AS alternativeProfession2
-                                                ,(CASE WHEN split_part("primaryProfession",',',3) = ''
-                                                           THEN 'unknow'
-                                                       ELSE  split_part("primaryProfession",',',3)
-                                               END) AS alternativeProfession3
-                                                ,"knownForTitles"
-                                                ,job
-                                                ,characters
-                                           from "title.principals" t
-                                                    LEFT JOIN  "name.basics" b on b.nconst= t.nconst
-                                           WHERE t.category = 'movie'
-                                           ORDER BY  t.nconst ASC
+                                            t.idPelicula
+                                            ,p.nconst
+                                           from titles t
+                                                    LEFT JOIN "title.principals" as p on t.idPelicula = p.tconst
+                                            WHERE p.category in (
+                                                  'actress',
+                                                  'actor')
                                            );
 
+-- drop view actors2;
 CREATE OR REPLACE TEMPORARY VIEW actors2 AS (
-                                            select *
-                                            from actors
-                                            where category in ('writer',
-                                                               'director',
-                                                               'actress',
-                                                               'actor')
-    );
+                                            select Distinct
+                                                 a.idPelicula
+                                                ,t.nconst as idActor
+                                                 ,"primaryName"
+                                                 ,"birthYear"
+                                                 ,"deathYear"
+                                                 ,(CASE WHEN split_part("primaryProfession",',',1) = ''
+                                                            THEN 'unknow'
+                                                        ELSE  split_part("primaryProfession",',',1)
+                                                END) AS alternativeProfession1
+                                                 ,(CASE WHEN split_part("primaryProfession",',',2) = ''
+                                                            THEN 'unknow'
+                                                        ELSE  split_part("primaryProfession",',',2)
+                                                END) AS alternativeProfession2
+                                                 ,(CASE WHEN split_part("primaryProfession",',',3) = ''
+                                                            THEN 'unknow'
+                                                        ELSE  split_part("primaryProfession",',',3)
+                                                END) AS alternativeProfession3
+                                                 ,"knownForTitles"
+                                                 ,job
+                                                 ,characters
+                                            from "title.principals" t
+                                                     INNER JOIN actors a on a.idPelicula = t.tconst
+                                                     INNER JOIN  "name.basics" b on b.nconst= t.nconst
+                                            ORDER BY  t.nconst ASC
+                                           );
 
-CREATE OR REPLACE TEMPORARY VIEW actors3 AS (
-                                            select *
-                                            from actors
-                                            where category in ('actress',
-                                                               'actor')
-                                                );
+SELECT * FROM  actors2;
 
-
--- Just Actors
-SELECT count(*) FROM  actors3;
--- 1716530
-
---writer
-CREATE OR REPLACE TEMPORARY VIEW actors3 AS (
-                                            select *
-                                            from actors
-                                            where category in ('actress',
-                                                               'actor')
-                                                );
-
-select * from actors3;
--- 1716530
-
-CREATE TABLE dim_actors as (select * from actors3);
-
+CREATE TABLE dim_actors as (select * from actors2);
 -- //-------------------------------------------------------------------//
 -- //-----------------------   UTILS QUERY       -----------------------//
 -- //-------------------------------------------------------------------//
@@ -300,7 +268,8 @@ select tconst
      , lower(unnest(string_to_array(genres, ','))) as gender
 from "title.basics";
 
-writer
-director
-actress
-actor
+
+-- writer
+-- director
+-- actress
+-- actor
