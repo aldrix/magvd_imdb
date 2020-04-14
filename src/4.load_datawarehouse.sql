@@ -71,14 +71,14 @@ FROM  staging.dim_genres;
 
 -- Insert all writers data in pro.dim_writers
 INSERT INTO pro.dim_writers
-("primaryName", "birthYear", "deathYear", profession1, profession2, profession3)
+(primary_name, birth_year, death_year, profession1, profession2, profession3)
 SELECT
     "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
 FROM staging.dim_writers;
 
 -- Insert all directors data in pro.dim_directors
 INSERT INTO pro.dim_directors
-("primaryName", "birthYear", "deathYear", profession1, profession2, profession3)
+(primary_name, birth_year, death_year, profession1, profession2, profession3)
 SELECT
     "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
 FROM
@@ -93,7 +93,7 @@ FROM staging.dim_titles;
 
 -- Insert all actors data in pro.dim_titles
 INSERT INTO pro.dim_actors
-( "primaryName", "birthYear", "deathYear", profession1, profession2, profession3, known_fo_titles, job)
+( primary_name, birth_year, death_year, profession1, profession2, profession3, known_fo_titles, job)
 SELECT
     "primaryName", "birthYear", "deathYear", profession1, profession2, profession3, known_fo_titles, job
 FROM
