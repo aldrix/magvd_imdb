@@ -246,6 +246,67 @@ CREATE table staging.dim_d AS (
     SELECT *
     FROM directors w);
 
+
+
+INSERT INTO pro.dim_genres
+(
+    genres_all,
+    genres1_2,
+    genres1_3,
+    genres2_3,
+    genres1,
+    genres2,
+    genres3
+) SELECT
+      genres,
+      genres1_2,
+      genres1_3,
+      genres2_3,
+      genres1,
+      genres2,
+      genres3
+FROM  staging.d_genres
+;
+
+-- //-------------------------------------------------------------------//
+-- //-----------------------   UTILS QUERY       -----------------------//
+-- //-------------------------------------------------------------------//
+INSERT INTO pro.dim_genres
+(genres_all,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3)
+SELECT
+      genres,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3
+FROM  staging.d_genres
+;
+
+INSERT INTO staging.dim_writers
+(idwriter, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3)
+SELECT
+    idwriter, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
+FROM staging.d_writers;
+
+INSERT INTO staging.dim_directors
+(iddirector, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3)
+SELECT
+    iddirector, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
+FROM
+    staging.d_directors;
+
+INSERT INTO staging.dim_titles
+(idpelicula, primary_title, original_title, "isAdult", release_year, runtime_minutes, genres)
+SELECT
+    idpelicula, "primaryTitle", "originalTitle", "isAdult", releaseyear, "runtimeMinutes", genres
+FROM staging.d_titles;
+
+INSERT INTO staging.dim_actors
+(idactor, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3, known_fo_titles, job)
+SELECT
+    idactor, "primaryName", "birthYear", "deathYear", alternativeprofession1, alternativeprofession2, alternativeprofession3, "knownForTitles", job
+FROM
+    staging.d_actors;
+
+
+
+
 -- //-------------------------------------------------------------------//
 -- //-----------------------   UTILS QUERY       -----------------------//
 -- //-------------------------------------------------------------------//
