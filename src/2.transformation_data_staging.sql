@@ -180,7 +180,7 @@ CREATE TABLE staging.d_titles AS (select * from titles);
 -- //-------------------------------------------------------------------//
 -- Get all movie actors
 CREATE OR REPLACE TEMPORARY VIEW actors AS (
-                                           select
+                                           select DISTINCT
                                                t.idPelicula
                                                 ,p.nconst
                                            from titles t
@@ -220,6 +220,11 @@ CREATE OR REPLACE TEMPORARY VIEW actors2 AS (
                                                 );
 
 SELECT * FROM  actors2;
+CREATE OR REPLACE TEMPORARY VIEW actors3 AS(
+
+);
+
+SELECT * FROM dim_actors where job = 'actor';
 
 -- First staging table
 CREATE TABLE staging.d_actors as (select * from actors2);
