@@ -1,5 +1,3 @@
-
-
 INSERT INTO pro.dim_writers
 (idwriter, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3)
 SELECT

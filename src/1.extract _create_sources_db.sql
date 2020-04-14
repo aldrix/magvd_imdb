@@ -12,7 +12,6 @@ COMMENT ON SCHEMA public IS 'standard public schema';
 --/---------------------------------------------------------/
 --/-------------------- CREATE TABLES   --------------------/
 --/---------------------------------------------------------/
-
 -- public."title.akas" definition
 
 -- Drop table
@@ -28,8 +27,6 @@ CREATE TABLE public."title.akas" (
 	"attributes" text NULL,
 	isoriginaltitle bool NULL
 );
-
-
 
 -- public."title.basics" definition
 

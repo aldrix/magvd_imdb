@@ -1,9 +1,15 @@
+--/---------------------------------------------------------/
+--/---------------- CREATE SCHEMA PRO   --------------------/
+--/---------------------------------------------------------/
 create schema pro;
 
 comment on schema pro is 'production datawarehouse schema';
 
 alter schema pro owner to postgres;
 
+--/---------------------------------------------------------/
+--/---------------- CREATE TABLES IN PRO  ------------------/
+--/---------------------------------------------------------/
 create table if not exists pro.dim_genres
 (
 	genres_id serial not null

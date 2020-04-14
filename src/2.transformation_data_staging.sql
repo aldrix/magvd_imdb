@@ -1,7 +1,7 @@
 -- //-------------------------------------------------------------------//
--- //--------------------       Get all Genres         ------------------//
+-- //-----------------   CREATE TEMP VIEWS GENRES     ------------------//
 -- //-------------------------------------------------------------------//
--- CREATE genres TEMPVIEW
+-- Get all genres not null from basics
 CREATE OR REPLACE TEMPORARY VIEW genres AS (
                                            select DISTINCT genres AS genres
                                            from "title.basics"
@@ -10,7 +10,7 @@ CREATE OR REPLACE TEMPORARY VIEW genres AS (
 
 SELECT count(*) FROM genres;
 
-
+-- split string genres by ´,´ in three and replace null genres by Unknow
 CREATE OR REPLACE TEMPORARY VIEW genres2 AS (
                                             WITH genres2 AS (
                                                 select genres
@@ -38,10 +38,13 @@ CREATE OR REPLACE TEMPORARY VIEW genres2 AS (
                                             FROM genres2
                                             ORDER BY genres ASC);
 
-CREATE TABLE staging.dim_genres as (select * from genres);
+-- First staging table
+CREATE TABLE staging.d_genres as (select * from genres);
+
 -- //-------------------------------------------------------------------//
--- //----------- CREATE TEMP VIEW writers_directors   ------------------//
+-- //------------ CREATE TEMP VIEWS writers_directors  -----------------//
 -- //-------------------------------------------------------------------//
+-- Get all writter and directors from crew
 CREATE OR REPLACE TEMPORARY VIEW writers_directors AS (
                                                       WITH writers_directors AS (
                                                           SELECT "tconst"
@@ -59,12 +62,12 @@ CREATE OR REPLACE TEMPORARY VIEW writers_directors AS (
                                                           END) AS writers
                                                       FROM writers_directors);
 
---
 select * from writers_directors;
 
 -- //-------------------------------------------------------------------//
--- //--------------- CREATE TEMP VIEW directors  -----------------------//
+-- //--------------- CREATE TEMP VIEW DIRECTORS  -----------------------//
 -- //-------------------------------------------------------------------//
+-- Get all know diretors from  writers_directors
 CREATE OR REPLACE TEMPORARY VIEW directors AS(
                                              select distinct tconst, directors
                                              from writers_directors
@@ -74,7 +77,7 @@ CREATE OR REPLACE TEMPORARY VIEW directors AS(
 select count(*) from directors;
 --5081482
 
---count distinct directors without repeated values
+-- Count distinct directors without repeated values
 WITH direc AS (select distinct directors
                from writers_directors
                where directors != 'unknow'
@@ -82,9 +85,7 @@ WITH direc AS (select distinct directors
 select count(*) from direc;
 -- 608495
 
-
-
--- Get directors information
+-- Get information about the directors and select three principals profession
 CREATE OR REPLACE TEMPORARY VIEW directors2 AS (
                                                SELECT DISTINCT
                                                    directors AS idDirector
@@ -96,17 +97,19 @@ CREATE OR REPLACE TEMPORARY VIEW directors2 AS (
                                                              ,lower(split_part("primaryProfession",',',3)) as alternativeProfession3
                                                from directors
                                                         LEFT join  "name.basics" on directors= nconst
-                                               where directors != 'unknow'
                                                order by directors ASC
                                                    );
 
 select count(*) from directors2;
 -- 608495
 
-CREATE TABLE staging.dim_directors as (select * from directors2);
+-- First staging table
+CREATE TABLE staging.d_directors as (select * from directors2);
+
 -- //-------------------------------------------------------------------//
--- //--------------- CREATE TEMP VIEW writers  -------------------------//
+-- //--------------- CREATE TEMP VIEW WRITERS  -------------------------//
 -- //-------------------------------------------------------------------//
+-- Get all know writter from  writers_directors
 CREATE OR REPLACE TEMPORARY VIEW writers AS(
                                            select distinct tconst, writers
                                            from writers_directors
@@ -125,6 +128,7 @@ WITH direc AS (select distinct writers
 select count(*) from direc;
 --770209
 
+-- Get information about the writters and select three principals profession
 CREATE OR REPLACE TEMPORARY VIEW writers2 AS (
                                              SELECT DISTINCT
                                                  writers as idWriter
@@ -136,17 +140,19 @@ CREATE OR REPLACE TEMPORARY VIEW writers2 AS (
                                                            ,lower(split_part("primaryProfession",',',3)) as alternativeProfession3
                                              from writers
                                                       LEFT join  "name.basics" on writers= nconst
-                                             where writers != 'unknow'
                                              order by writers ASC
                                                  );
 
 select count(*) from writers2;
 -- 770209
 
-CREATE TABLE staging.dim_writers2 as (select * from writers2);
+-- First staging table
+CREATE TABLE staging.d_writers as (select * from writers2);
+
 -- //-------------------------------------------------------------------//
 -- //------------     CREATE TEMP VIEW TITLES         ------------------//
 -- //-------------------------------------------------------------------//
+-- Get all movie title  from  title.basics
 CREATE OR REPLACE TEMPORARY VIEW titles AS (
                                            select
                                                t.tconst as idPelicula
@@ -166,11 +172,13 @@ group by  "titleType";
 
 select * from titles;
 
-CREATE TABLE staging.dim_titles AS (select * from titles);
+-- First staging table
+CREATE TABLE staging.d_titles AS (select * from titles);
 
 -- //-------------------------------------------------------------------//
 -- //--------------- CREATE TEMP VIEW ACTORS     -----------------------//
 -- //-------------------------------------------------------------------//
+-- Get all movie actors
 CREATE OR REPLACE TEMPORARY VIEW actors AS (
                                            select
                                                t.idPelicula
@@ -182,7 +190,7 @@ CREATE OR REPLACE TEMPORARY VIEW actors AS (
                                                                 'actor')
                                                );
 
--- drop view actors2;
+-- Get information about the actors title.principals and select three principals profession
 CREATE OR REPLACE TEMPORARY VIEW actors2 AS (
                                             select Distinct
                                                 a.idPelicula
@@ -213,52 +221,13 @@ CREATE OR REPLACE TEMPORARY VIEW actors2 AS (
 
 SELECT * FROM  actors2;
 
-CREATE TABLE staging.dim_actors as (select * from actors2);
+-- First staging table
+CREATE TABLE staging.d_actors as (select * from actors2);
+
 -- //-------------------------------------------------------------------//
--- //-----------------------   CROSS       -----------------------//
+-- //---------------------   CLEAN TABLES STAGING ----------------------//
 -- //-------------------------------------------------------------------//
-CREATE TEMPORARY VIEW wd_titles AS (
-                                   select
-                                       wd.tconst
-                                        ,wd.directors
-                                        ,wd.writers
-                                   from writers_directors wd
-                                            LEFT JOIN titles t ON  t.idPelicula = wd.tconst
-
-
-    );
-
-with a as(
-    select * from writers_directors
-                      LEFT JOIN titles ON  tconst = tconst
-) SELECT count(*) FROM a;
-
-
-CREATE OR REPLACE TEMPORARY VIEW writers AS(select tconst,writers from wd_titles WHERE writers is not  null);
-CREATE OR REPLACE TEMPORARY VIEW directors AS(select tconst,directors from wd_titles WHERE directors is not  null);
-
-CREATE table dim_w AS (
-    SELECT *
-    FROM writers w);
-
--- drop table staging.dim_d;
-CREATE table staging.dim_d AS (
-    SELECT *
-    FROM directors w);
-
-
-
 INSERT INTO staging.dim_genres
-(genres_all,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3)
-SELECT
-    genres,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3
-FROM  staging.d_genres
-;
-
--- //-------------------------------------------------------------------//
--- //-----------------------   UTILS QUERY       -----------------------//
--- //-------------------------------------------------------------------//
-INSERT INTO pro.dim_genres
 (genres_all,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3)
 SELECT
       genres,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3
@@ -291,27 +260,3 @@ SELECT
 FROM
     staging.d_actors;
 
-
-
-
--- //-------------------------------------------------------------------//
--- //-----------------------   UTILS QUERY       -----------------------//
--- //-------------------------------------------------------------------//
--- Old Get genres
-select
-    tconst
-     , lower(split_part(genres,',',1)) as genres1
-     ,lower(split_part(genres,',',2)) as genres2
-     ,lower(split_part(genres,',',3)) as genres3
-from "title.basics";
-
--- Get genres without null
-select tconst
-     , lower(unnest(string_to_array(genres, ','))) as genres
-from "title.basics";
-
-
--- writer
--- director
--- actress
--- actor
