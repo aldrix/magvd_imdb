@@ -248,23 +248,10 @@ CREATE table staging.dim_d AS (
 
 
 
-INSERT INTO pro.dim_genres
-(
-    genres_all,
-    genres1_2,
-    genres1_3,
-    genres2_3,
-    genres1,
-    genres2,
-    genres3
-) SELECT
-      genres,
-      genres1_2,
-      genres1_3,
-      genres2_3,
-      genres1,
-      genres2,
-      genres3
+INSERT INTO staging.dim_genres
+(genres_all,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3)
+SELECT
+    genres,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3
 FROM  staging.d_genres
 ;
 
