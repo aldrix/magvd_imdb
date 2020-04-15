@@ -232,6 +232,163 @@ CREATE TABLE staging.d_actors as (select * from actors2);
 -- //-------------------------------------------------------------------//
 -- //---------------------   CLEAN TABLES STAGING ----------------------//
 -- //-------------------------------------------------------------------//
+-- GENRES unknown
+select * from staging.dim_genres where  genres_all =  'Unknow,Unknow,Unknow'
+
+-- Count genres rows
+select count (*) from staging.dim_genres;
+-- 2246
+
+-- Check table to validate duplicate information
+SELECT
+     g.genres_all,  count(*)
+FROM staging.dim_genres g
+GROUP BY g.genres_all
+HAVING count(*) > 1;
+
+-- //-------------------------------------------------------------------//
+-- ACTORS
+select * from staging.dim_actors;
+
+-- Count actors rows
+select count(*) from staging.dim_actors;
+--1 238 033
+
+-- Check table to validate duplicate information
+SELECT
+    a.primary_name, a.birth_year, a.death_year, a.profession1, count(*)
+FROM pro.dim_actors a
+GROUP BY
+    a.primary_name, a.birth_year, a.death_year, a.profession1
+HAVING count(*) > 1;
+
+-- count distinct  actors
+SELECT count (distinct idactor ) FROM staging.dim_actors;
+-- 1 096 883
+-- repeated values
+-- -141150
+
+DROP TABLE staging.dim_actor_wd;
+
+-- Table with unique actors
+CREATE TABLE staging.dim_actor_wd AS
+    SELECT DISTINCT  idActor, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3, known_fo_titles, gender
+           FROM staging.dim_actors;
+
+-- Check actor data
+SELECT * FROM staging.dim_actor_wd;
+
+-- Drop old table
+DROP TABLE staging.dim_actors;
+
+-- create  new dim_actors table
+create table if not exists staging.dim_actors
+(
+    actor_id serial not null
+        constraint dim_actors_pkey
+            primary key,
+    idactor varchar,
+    "primaryName" varchar,
+    "birthYear" integer,
+    "deathYear" integer,
+    profession1 text,
+    profession2 text,
+    profession3 text,
+    known_fo_titles text,
+    gender text
+);
+
+-- Insert values from staging.dim_actor_wd
+INSERT INTO staging.dim_actors( idactor, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3)
+SELECT idactor, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3 FROM staging.dim_actor_wd;
+
+SELECT count(*) FROM staging.dim_actors;
+
+-- Get gender and tem view
+CREATE TEMP VIEW  actors_gender AS
+SELECT DISTINCT  idactor, category
+FROM staging.dim_actors a
+         JOIN "title.principals" p ON a.idactor = p.nconst
+where category in ('actress', 'actor');
+
+SELECT * FROM actors_gender;
+
+-- DROP VIEW actors_gender;
+
+UPDATE staging.dim_actors a SET
+                                gender = (CASE WHEN category = 'actress' THEN 'Female'
+                                            WHEN category = 'actor' THEN 'Male' END)
+FROM  actors_gender ag
+where  ag.idactor= a.idactor;
+
+-- Set Unknown to known_fo_titles when is null
+UPDATE staging.dim_actors a SET known_fo_titles = 'Unknown'
+WHERE  known_fo_titles is null;
+
+-- Set  Unknown in profession(1-3)
+UPDATE  staging.dim_actors SET profession3 = 'Unknown'
+where profession3 = 'unknow' or profession3 is null or profession3 = '';
+
+-- //-------------------------------------------------------------------//
+-- WRITER
+select * from staging.dim_writers;
+
+-- Count writer rows
+select count(distinct  writer_id) from staging.dim_writers;
+-- 770209
+-- distinct  writer_id 769235
+
+select * from staging.dim_writers where "primaryName" is null;
+-- 975 escritores sin informacion, se eliminaran y
+-- se agregara un solo director cuyos datos desconocidos
+
+-- Check information about
+select *
+from staging.dim_writers w
+         JOIN "name.basics" p ON w.idwriter = p.nconst
+where w."primaryName" is null;
+
+-- Set  Unknown in profession(1-3)
+UPDATE  staging.dim_writers SET profession3 = 'Unknown'
+where profession3 = 'unknow' or profession3 is null or profession3 = '';
+
+select * from staging.dim_writers;
+
+-- //-------------------------------------------------------------------//
+-- DIRECTORS
+select * from staging.dim_directors;
+
+-- Count writer rows
+select count(distinct  iddirector) from staging.dim_directors;
+-- 608495
+-- distinct  iddirector 607579
+
+select * from staging.dim_directors where "primaryName" is null;
+
+with  aux as (
+    select * from staging.dim_directors where "primaryName" is null
+)SELECT COUNT(*) FROM aux;
+-- 917 escritores sin informacion, se eliminaran y
+-- -- se agregara un solo director cuyos datos desconocidos
+
+select *
+from staging.dim_directors w
+         JOIN "name.basics" p ON w.iddirector = p.nconst
+where w."primaryName" is null;
+
+UPDATE  staging.dim_directors SET iddirector = 590543
+    WHERE "primaryName" is null ;
+
+
+
+-- Set  Unknown in profession(1-3)
+UPDATE  staging.dim_directors SET profession2 = 'Unknown'
+where profession2 = 'unknow' or profession2 is null or profession2 = '';
+
+
+-- //-------------------------------------------------------------------//
+-- //---------------------   CLEAN TABLES STAGING ----------------------//
+-- //-------------------------------------------------------------------//
 INSERT INTO staging.dim_genres
 (genres_all,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3)
 SELECT
@@ -264,4 +421,5 @@ SELECT
     idactor, "primaryName", "birthYear", "deathYear", alternativeprofession1, alternativeprofession2, alternativeprofession3, "knownForTitles", job
 FROM
     staging.d_actors;
+
 
