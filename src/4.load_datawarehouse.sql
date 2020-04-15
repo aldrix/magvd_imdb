@@ -45,7 +45,7 @@ select * from staging.writers_directors where tconst ='tt0097942';
 
 select * from staging.dim_writers where idwriter = 'nm0000464';
 
-select * from staging.dim_genres where genres1_2='Unknow,Unknow';
+select * from pro.dim_genres where genres_all='Unknown,Unknown,Unknown';
 
 SELECT * FROM "title.principals" WHERE tconst='tt0098039';
 
@@ -56,8 +56,6 @@ SELECT * FROM "title.principals" WHERE tconst='tt0098039';
 -- Join  wd 869809
 -- Join  principals LEFT 3872899 - INNER 3856044
 
-INSERT INTO  PRO.fact_rating
-SELECT * FROM staging.fact_rating_4;
 
 -- //-------------------------------------------------------------------//
 -- //-------------  FILL DIMENSION TABLES SCHEMA PRO   -----------------//
@@ -66,36 +64,36 @@ SELECT * FROM staging.fact_rating_4;
 INSERT INTO pro.dim_genres
 (genres_all,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3)
 SELECT
-    genres_all,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3
-FROM  staging.dim_genres;
+    DISTINCT genres,genres1_2,genres1_3,genres2_3,genres1,genres2,genres3
+FROM  staging.d_genres;
 
 -- Insert all writers data in pro.dim_writers
 INSERT INTO pro.dim_writers
 (primary_name, birth_year, death_year, profession1, profession2, profession3)
 SELECT
-    "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
+    DISTINCT "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
 FROM staging.dim_writers;
 
 -- Insert all directors data in pro.dim_directors
 INSERT INTO pro.dim_directors
 (primary_name, birth_year, death_year, profession1, profession2, profession3)
 SELECT
-    "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
+    DISTINCT "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
 FROM
     staging.dim_directors;
 
 -- Insert all directors data in pro.dim_titles
 INSERT INTO pro.dim_titles
-(primary_title, original_title, "isAdult", release_year, runtime_minutes, genres)
+(primary_title, original_title, "is_adult", release_year, runtime_minutes, genres)
 SELECT
-    primary_title, original_title, "isAdult", release_year, runtime_minutes, genres
+    DISTINCT primary_title, original_title, "isAdult", release_year, runtime_minutes, genres
 FROM staging.dim_titles;
 
 -- Insert all actors data in pro.dim_titles
 INSERT INTO pro.dim_actors
-( primary_name, birth_year, death_year, profession1, profession2, profession3, known_fo_titles, job)
+( primary_name, birth_year, death_year, profession1, profession2, profession3, known_for_titles, gender)
 SELECT
-    "primaryName", "birthYear", "deathYear", profession1, profession2, profession3, known_fo_titles, job
+    DISTINCT  "primaryName", "birthYear", "deathYear", profession1, profession2, profession3, known_fo_titles, gender
 FROM
     staging.dim_actors;
 

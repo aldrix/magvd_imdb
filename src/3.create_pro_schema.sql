@@ -31,10 +31,10 @@ create table if not exists pro.dim_directors
 	director_id serial not null
 		constraint dim_directors_pkey
 			primary key,
-	iddirector text,
-	"primaryName" varchar,
-	"birthYear" integer,
-	"deathYear" integer,
+	director text,
+	"primary_name" varchar,
+	"birth_year" integer,
+	"death_year" integer,
 	profession1 text,
 	profession2 text,
 	profession3 text
@@ -47,10 +47,10 @@ create table if not exists pro.dim_writers
 	writer_id serial not null
 		constraint dim_writers_pkey
 			primary key,
-	idwriter text,
-	"primaryName" varchar,
-	"birthYear" integer,
-	"deathYear" integer,
+	writer text,
+	"primary_name" varchar,
+	"birth_year" integer,
+	"death_year" integer,
 	profession1 text,
 	profession2 text,
 	profession3 text
@@ -63,10 +63,10 @@ create table if not exists pro.dim_titles
 	title_id serial not null
 		constraint dim_titles_pkey
 			primary key,
-	idpelicula varchar,
+	movie varchar,
 	primary_title text,
 	original_title text,
-	"isAdult" boolean,
+	"is_adult" boolean,
 	release_year integer,
 	runtime_minutes integer,
 	genres text
@@ -79,15 +79,15 @@ create table if not exists pro.dim_actors
 	actor_id serial not null
 		constraint dim_actors_pkey
 			primary key,
-	idactor varchar,
-	"primaryName" varchar,
-	"birthYear" integer,
-	"deathYear" integer,
+	actor varchar,
+	"primary_name" varchar,
+	"birth_year" integer,
+	"death_year" integer,
 	profession1 text,
 	profession2 text,
 	profession3 text,
-	known_fo_titles text,
-	job text
+	known_for_titles text,
+    gender text
 );
 
 alter table pro.dim_actors owner to postgres;

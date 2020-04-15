@@ -92,3 +92,123 @@ ORDER BY t.original_title ASC
 ;
 
 
+SELECT r.actor_id
+FROM pro.fact_rating r , pro.fact_rating r1
+WHERE r.actor_id != r1.actor_id
+and r.title_id ;
+
+drop view  dup_actor;
+CREATE  TEMP  VIEW  dup_actor as (SELECT
+    a.primary_name, a.birth_year, a.death_year, a.profession1, MIN(a.actor_id) as id ,  count(*)
+FROM pro.dim_actors a
+GROUP BY
+    a.primary_name, a.birth_year, a.death_year, a.profession1
+HAVING count(*) > 1);
+
+
+select count(*) from dup_actor;
+-- 95796
+
+
+
+
+
+
+-- DELETE from pro.dim_actors where actor_id in (
+    SELECT actor_id
+    FROM pro.dim_actors a
+             join dup_actor d on a.primary_name = d.primary_name and  a.birth_year = d.birth_year and
+                                 a.death_year = d.death_year and  a.profession1 = d.profession1 and
+                                 a.actor_id != d.id
+                                 );
+
+
+
+with dup as (SELECT actor_id
+FROM pro.dim_actors a
+join dup_actor d on a.primary_name = d.primary_name and  a.birth_year = d.birth_year and
+                    a.death_year = d.death_year and  a.profession1 = d.profession1 and
+                    a.actor_id != d.id
+    )select count(*)
+from dup;
+
+
+
+
+
+SELECT
+    a.primary_name, a.birth_year, a.death_year, a.profession1, Min(a.actor_id) as id,  count(*)
+FROM pro.dim_actors a
+WHERE a.actor_id not in (select id from dup_actor)
+GROUP BY
+    a.primary_name, a.birth_year, a.death_year, a.profession1
+HAVING count(*) > 1;
+
+
+
+
+
+
+
+
+SELECT
+    a.primary_name, a.birth_year, a.death_year, a.profession1,  count(*)
+FROM pro.dim_actors a
+GROUP BY
+    a.primary_name, a.birth_year, a.death_year, a.profession1
+HAVING count(*) > 1;
+
+
+
+SELECT *
+FROM pro.dim_actors WHERE primary_name LIKE '50 Cent';
+
+-- 509041 son ft 22
+-- 509042  son ft 22
+
+with  aux as (
+    SELECT *
+    from pro.fact_rating r
+    where r.actor_id = 509042
+)SELECT COUNT(*) FROM aux;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DELETE from pro.dim_actors where actor_id = 509042;
+
+with  aux as (SELECT actor_id
+FROM pro.dim_actors WHERE primary_name LIKE 'A.R. Rawlinson')
+select * from  aux a
+join pro.fact_rating r on r.actor_id = a.actor_id;
+
+WITH aux AS  (SELECT DISTINCT a.primary_name, a.birth_year, a.death_year, a.profession1, a.profession2
+FROM PRO.dim_actors a)
+SELECT COUNT(*) FROM aux;
+-- 1046914
+-- 1080055
+
+SELECT COUNT(*) FROM staging.dim_actors;
+-- 1238033
+
+-- Actores repetidos aproximadamente
+-- 191119
+
+
+-- Actores
+-- 669422
+-- 669423
+
+Select  *
+FROM pro.fact_rating r
+WHERE r.actor_id in (669422, 669423);

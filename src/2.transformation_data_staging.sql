@@ -10,20 +10,20 @@ CREATE OR REPLACE TEMPORARY VIEW genres AS (
 
 SELECT count(*) FROM genres;
 
--- split string genres by ´,´ in three and replace null genres by Unknow
+-- split string genres by ´,´ in three and replace null genres by Unknown
 CREATE OR REPLACE TEMPORARY VIEW genres2 AS (
                                             WITH genres2 AS (
                                                 select genres
                                                      ,(CASE WHEN split_part(genres,',',1) = ''
-                                                                THEN 'Unknow'
+                                                                THEN 'Unknown'
                                                             ELSE  split_part(genres,',',1)
                                                     END) AS genres1
                                                      ,(CASE WHEN split_part(genres,',',2) = ''
-                                                                THEN 'Unknow'
+                                                                THEN 'Unknown'
                                                             ELSE  split_part(genres,',',2)
                                                     END) AS  genres2
                                                      ,(CASE WHEN split_part(genres,',',3) = ''
-                                                                THEN 'Unknow'
+                                                                THEN 'Unknown'
                                                             ELSE  split_part(genres,',',3)
                                                     END) AS genres3
                                                 FROM genres)
@@ -39,8 +39,7 @@ CREATE OR REPLACE TEMPORARY VIEW genres2 AS (
                                             ORDER BY genres ASC);
 
 -- First staging table
-CREATE TABLE staging.d_genres as (select * from genres);
-
+CREATE TABLE staging.d_genres as (select * from genres2);
 -- //-------------------------------------------------------------------//
 -- //------------ CREATE TEMP VIEWS writers_directors  -----------------//
 -- //-------------------------------------------------------------------//
@@ -54,11 +53,11 @@ CREATE OR REPLACE TEMPORARY VIEW writers_directors AS (
                                                       SELECT "tconst"
                                                            ,(CASE WHEN directors IS NOT NULL
                                                                       THEN directors
-                                                                  ELSE 'unknow'
+                                                                  ELSE 'Unknown'
                                                           END) AS directors
                                                            ,(CASE WHEN writers IS NOT NULL
                                                                       THEN writers
-                                                                  ELSE 'unknow'
+                                                                  ELSE 'Unknown'
                                                           END) AS writers
                                                       FROM writers_directors);
 
@@ -71,7 +70,7 @@ select * from writers_directors;
 CREATE OR REPLACE TEMPORARY VIEW directors AS(
                                              select distinct tconst, directors
                                              from writers_directors
-                                             where directors != 'unknow'
+                                             where directors != 'Unknown'
                                              ORDER BY  directors ASC
                                                  );
 select count(*) from directors;
@@ -80,7 +79,7 @@ select count(*) from directors;
 -- Count distinct directors without repeated values
 WITH direc AS (select distinct directors
                from writers_directors
-               where directors != 'unknow'
+               where directors != 'Unknown'
                ORDER BY  directors ASC)
 select count(*) from direc;
 -- 608495
@@ -113,7 +112,7 @@ CREATE TABLE staging.d_directors as (select * from directors2);
 CREATE OR REPLACE TEMPORARY VIEW writers AS(
                                            select distinct tconst, writers
                                            from writers_directors
-                                           where writers != 'unknow'
+                                           where writers != 'Unknown'
                                            ORDER BY  writers ASC
                                                );
 
@@ -123,7 +122,7 @@ select count(*) from writers;
 --count distinct writers without repeated values
 WITH direc AS (select distinct writers
                from writers_directors
-               where writers != 'unknow'
+               where writers != 'Unknown'
                ORDER BY  writers ASC)
 select count(*) from direc;
 --770209
@@ -199,15 +198,15 @@ CREATE OR REPLACE TEMPORARY VIEW actors2 AS (
                                                           ,"birthYear"
                                                           ,"deathYear"
                                                           ,(CASE WHEN split_part("primaryProfession",',',1) = ''
-                                                                     THEN 'unknow'
+                                                                     THEN 'Unknown'
                                                                  ELSE  split_part("primaryProfession",',',1)
                                                 END) AS alternativeProfession1
                                                           ,(CASE WHEN split_part("primaryProfession",',',2) = ''
-                                                                     THEN 'unknow'
+                                                                     THEN 'Unknown'
                                                                  ELSE  split_part("primaryProfession",',',2)
                                                 END) AS alternativeProfession2
                                                           ,(CASE WHEN split_part("primaryProfession",',',3) = ''
-                                                                     THEN 'unknow'
+                                                                     THEN 'Unknown'
                                                                  ELSE  split_part("primaryProfession",',',3)
                                                 END) AS alternativeProfession3
                                                           ,"knownForTitles"
@@ -224,16 +223,14 @@ CREATE OR REPLACE TEMPORARY VIEW actors3 AS(
 
 );
 
-SELECT * FROM dim_actors where job = 'actor';
-
 -- First staging table
 CREATE TABLE staging.d_actors as (select * from actors2);
 
 -- //-------------------------------------------------------------------//
 -- //---------------------   CLEAN TABLES STAGING ----------------------//
 -- //-------------------------------------------------------------------//
--- GENRES unknown
-select * from staging.dim_genres where  genres_all =  'Unknow,Unknow,Unknow'
+-- GENRES Unknownn
+select * from staging.dim_genres where  genres1 =  'Unknown';
 
 -- Count genres rows
 select count (*) from staging.dim_genres;
@@ -321,14 +318,16 @@ UPDATE staging.dim_actors a SET
 FROM  actors_gender ag
 where  ag.idactor= a.idactor;
 
--- Set Unknown to known_fo_titles when is null
-UPDATE staging.dim_actors a SET known_fo_titles = 'Unknown'
+-- Set Unknownn to known_fo_titles when is null
+UPDATE staging.dim_actors a SET known_fo_titles = 'Unknownn'
 WHERE  known_fo_titles is null;
 
--- Set  Unknown in profession(1-3)
-UPDATE  staging.dim_actors SET profession3 = 'Unknown'
-where profession3 = 'unknow' or profession3 is null or profession3 = '';
+-- Set  Unknownn in profession(1-3)
+UPDATE  staging.dim_actors SET profession3 = 'Unknownn'
+where profession3 = 'Unknown' or profession3 is null or profession3 = '';
 
+SELECT COUNT(DISTINCT idactor) FROM staging.dim_actors;
+-- 1096883
 -- //-------------------------------------------------------------------//
 -- WRITER
 select * from staging.dim_writers;
@@ -348,9 +347,9 @@ from staging.dim_writers w
          JOIN "name.basics" p ON w.idwriter = p.nconst
 where w."primaryName" is null;
 
--- Set  Unknown in profession(1-3)
-UPDATE  staging.dim_writers SET profession3 = 'Unknown'
-where profession3 = 'unknow' or profession3 is null or profession3 = '';
+-- Set  Unknownn in profession(1-3)
+UPDATE  staging.dim_writers SET profession3 = 'Unknownn'
+where profession3 = 'Unknown' or profession3 is null or profession3 = '';
 
 select * from staging.dim_writers;
 
@@ -363,10 +362,10 @@ select count(distinct  iddirector) from staging.dim_directors;
 -- 608495
 -- distinct  iddirector 607579
 
-select * from staging.dim_directors where "primaryName" is null;
+select Distinct * from staging.dim_directors where "primaryName" is null;
 
 with  aux as (
-    select * from staging.dim_directors where "primaryName" is null
+    select Distinct * from staging.dim_directors where "primaryName" is null
 )SELECT COUNT(*) FROM aux;
 -- 917 escritores sin informacion, se eliminaran y
 -- -- se agregara un solo director cuyos datos desconocidos
@@ -381,9 +380,21 @@ UPDATE  staging.dim_directors SET iddirector = 590543
 
 
 
--- Set  Unknown in profession(1-3)
-UPDATE  staging.dim_directors SET profession2 = 'Unknown'
-where profession2 = 'unknow' or profession2 is null or profession2 = '';
+-- Set  Unknownn in profession(1-3)
+UPDATE  staging.dim_directors SET profession2 = 'Unknownn'
+where profession2 = 'Unknown' or profession2 is null or profession2 = '';
+
+-- //-------------------------------------------------------------------//
+-- TITLES
+select * from staging.dim_titles;
+
+-- Count writer rows
+select count(*) from staging.dim_titles;
+-- 547688
+-- 547688 distinct  idpelicula
+
+
+select * from staging.dim_titles where genres is null;
 
 
 -- //-------------------------------------------------------------------//
@@ -399,26 +410,26 @@ FROM  staging.d_genres
 INSERT INTO staging.dim_writers
 (idwriter, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3)
 SELECT
-    idwriter, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
+   DISTINCT idwriter, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
 FROM staging.d_writers;
 
 INSERT INTO staging.dim_directors
 (iddirector, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3)
 SELECT
-    iddirector, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
+    DISTINCT iddirector, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3
 FROM
     staging.d_directors;
 
 INSERT INTO staging.dim_titles
 (idpelicula, primary_title, original_title, "isAdult", release_year, runtime_minutes, genres)
 SELECT
-    idpelicula, "primaryTitle", "originalTitle", "isAdult", releaseyear, "runtimeMinutes", genres
+    DISTINCT idpelicula, "primaryTitle", "originalTitle", "isAdult", releaseyear, "runtimeMinutes", genres
 FROM staging.d_titles;
 
 INSERT INTO staging.dim_actors
 (idactor, "primaryName", "birthYear", "deathYear", profession1, profession2, profession3, known_fo_titles, job)
 SELECT
-    idactor, "primaryName", "birthYear", "deathYear", alternativeprofession1, alternativeprofession2, alternativeprofession3, "knownForTitles", job
+    DISTINCT idactor, "primaryName", "birthYear", "deathYear", alternativeprofession1, alternativeprofession2, alternativeprofession3, "knownForTitles", job
 FROM
     staging.d_actors;
 
