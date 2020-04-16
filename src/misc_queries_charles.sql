@@ -1,12 +1,17 @@
-WITH actors_best  AS( SELECT DISTINCT  a.actor_id, a.primary_name, r.average_rating, r.num_votes
+WITH movie_best  AS( SELECT DISTINCT r.title_id , r.average_rating 
 FROM pro.fact_rating r
-JOIN pro.dim_actors a ON a.actor_id = r.actor_id and r.average_rating > 5
-ORDER BY  r.average_rating desc limit 200
-)
-SELECT a.primary_name AS actor , SUM(a.average_rating * a.num_votes)/SUM(num_votes) as prom, Count(*),SUM(num_votes)
-FROM  actors_best a
+ORDER BY  r.average_rating desc limit 100
+),
+with actors_best as(select )
+
+SELECT a.primary_name AS actor , SUM(r.average_rating * r.num_votes)/SUM(r.num_votes) as prom, Count(*), SUM(r.num_votes)
+FROM  pro.dim_actors a left join pro.fact_rating r on a.actor_id = r.actor_id 
 GROUP BY a.primary_name
+order by prom desc ;
  
+ SELECT DISTINCT r.title_id , r.average_rating 
+FROM pro.fact_rating r
+ORDER BY  r.average_rating desc limit 100;
 
 -- las películas más votadas por los usuarios indicando el número de votos recibidos
 -- y la puntuación media
