@@ -15,7 +15,7 @@ create table if not exists pro.dim_genres
 	genres_id serial not null
 		constraint dim_genres_pkey
 			primary key,
-	genres_all text,
+	genres text,
 	genres1_2 text,
 	genres1_3 text,
 	genres2_3 text,
@@ -63,13 +63,12 @@ create table if not exists pro.dim_titles
 	title_id serial not null
 		constraint dim_titles_pkey
 			primary key,
-	movie varchar,
+	title varchar,
 	primary_title text,
 	original_title text,
 	"is_adult" boolean,
 	release_year integer,
-	runtime_minutes integer,
-	genres text
+	runtime_minutes integer
 );
 
 alter table pro.dim_titles owner to postgres;
