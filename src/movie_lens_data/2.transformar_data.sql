@@ -1,5 +1,5 @@
 -- //-------------------------------------------------------------------//
--- //------------              ------------------//
+-- //------------     COUNT DATA MOVIE LENS           ------------------//
 -- //-------------------------------------------------------------------//
 -- Count rows in tables
 SELECT count(*) FROM  ml_links;
@@ -22,7 +22,7 @@ SELECT count(*) FROM  ml_ratings;
 -- 25000095
 
 -- //-------------------------------------------------------------------//
--- //------------              ------------------//
+-- //------------    FORMATTING ID IMDB_MOVIELENS      -----------------//
 -- //-------------------------------------------------------------------//
 -- Change id format
 select  substr('tt0111161', 3, length('tt0111161'));
@@ -51,13 +51,9 @@ left join pro.dim_titles t on t.imdb_id = i.imdb_id;
 
 SELECT count(*) FROM ml_dw_imdb;
 
---
-with aux as (
-select * from ml_dw_imdb where title_id is null
-)SELECT count(*) FROM aux;
--- count pelis  no registradas 9375
-
-
+-- //-------------------------------------------------------------------//
+-- //------------      ------------------//
+-- //-------------------------------------------------------------------//
 -- Create table with all information about movie_len adn datawarehouse
 CREATE TABLE data_ml_mlgt AS
 SELECT dw."movieId" as ml_id, dw.imdb_id, dw.title_id as dw_id , mm.title as primary_title
@@ -73,10 +69,25 @@ left join ml_genome_tags mgt on mg."tagId" = mgt."tagId"
 -- left join ml_tags mt on dw."movieId" = mt."movieId" and mt."userId" = mr."userId"+
 ;
 
+-- //-------------------------------------------------------------------//
+-- //------------   CHECK MOVIES IN DIM_TITLES DW     ------------------//
+-- //-------------------------------------------------------------------//
+-- count pelis  no registradas 9375
+with aux as (
+    select * from ml_dw_imdb where title_id is null
+)SELECT count(*) FROM aux;
 
--- //-------------------------------------------------------------------//
--- //------------            ------------------//
--- //-------------------------------------------------------------------//
+
+-- Insert new titles from movie_len in datawarehouse
+-- INSERT INTO pro.dim_titles as
+SELECT m.title, ml.imdb_id
+FROM ml_movies m
+left join ml_dw_imdb ml on m."movieId" = ml."movieId"
+left join pro.dim_titles t on  t.primary_title = m.title
+where t.title_id is null
+;
+
+-- //---------------------------------
 -- Insert news movies
 with aux as (Select "movieid" as ml_id, imdb_id
 from ml_dw_imdb
@@ -86,7 +97,7 @@ from aux a
 left join ml_movies m on ml_id = "movieId";
 
 -- //-------------------------------------------------------------------//
--- //------------            ------------------//
+-- //------------      CREATE TEMP VIEWS GENRES       ------------------//
 -- //-------------------------------------------------------------------//
 -- Validate genres
 -- drop view ml_genres;
