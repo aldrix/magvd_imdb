@@ -1,5 +1,7 @@
+-- //-------------------------------------------------------------------//
+-- //------------              ------------------//
+-- //-------------------------------------------------------------------//
 -- Count rows in tables
-
 SELECT count(*) FROM  ml_links;
 -- 62424 links.csv
 -- 62423
@@ -19,6 +21,9 @@ SELECT count(*) FROM  ml_ratings;
 -- 25000096 ratings.csv
 -- 25000095
 
+-- //-------------------------------------------------------------------//
+-- //------------              ------------------//
+-- //-------------------------------------------------------------------//
 -- Change id format
 select  substr('tt0111161', 3, length('tt0111161'));
 
@@ -32,8 +37,6 @@ where t.title_id = t1.title_id;
 
 -- Get values
 select title_id, title, imdb_id from pro.dim_titles;
-
-
 
 -- Looking information about the movies in data warehouse
 CREATE TABLE ml_dw_imdb AS
@@ -56,21 +59,24 @@ select * from ml_dw_imdb where title_id is null
 
 
 -- Create table with all information about movie_len adn datawarehouse
-CREATE TABLE data_ml AS
+CREATE TABLE data_ml_mlgt AS
 SELECT dw."movieId" as ml_id, dw.imdb_id, dw.title_id as dw_id , mm.title as primary_title
-       ,mm.genres, mr.rating, mr."userId" as user_id, mr.timestamp as rating_time,
-       mg.relevance as rating_relevance,  mt.tag as tag_user_mv, mgt."tagId" as tag_id, mgt.tag as tag_name,  mt.timestamp as tag_time
+       ,mm.genres, mr.rating, mr."userId" as user_id, mr.timestamp as rating_time
+       ,mg.relevance as rating_relevance,  mgt."tagId" as tag_id
+       ,  mgt.tag as tag_name
+--        ,mt.timestamp as tag_time ,mt.tag as tag_user_mv
 FROM ml_movies mm
 left join ml_dw_imdb dw on imdb_id = mm."movieId"
 left join ml_ratings mr on dw."movieId" = mr."movieId"
 left join ml_genome_scores mg on mg."movieId" = mm."movieId"
 left join ml_genome_tags mgt on mg."tagId" = mgt."tagId"
-left join ml_tags mt on dw."movieId" = mt."movieId" and mt."userId" = mr."userId"
+-- left join ml_tags mt on dw."movieId" = mt."movieId" and mt."userId" = mr."userId"+
 ;
 
 
-
-
+-- //-------------------------------------------------------------------//
+-- //------------            ------------------//
+-- //-------------------------------------------------------------------//
 -- Insert news movies
 with aux as (Select "movieid" as ml_id, imdb_id
 from ml_dw_imdb
@@ -79,7 +85,9 @@ from ml_dw_imdb
 from aux a
 left join ml_movies m on ml_id = "movieId";
 
-
+-- //-------------------------------------------------------------------//
+-- //------------            ------------------//
+-- //-------------------------------------------------------------------//
 -- Validate genres
 -- drop view ml_genres;
 -- Create view with all ml genres
