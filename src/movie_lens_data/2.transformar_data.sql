@@ -35,9 +35,27 @@ UPDATE pro.dim_titles t SET imdb_id = substr(t1.title, 3, length(t1.title))::INT
 from pro.dim_titles t1
 where t.title_id = t1.title_id;
 
--- Get values
-select title_id, title, imdb_id from pro.dim_titles;
+-- //-------------------------------------------------------------------//
+-- //------------      ------------------//
+-- //-------------------------------------------------------------------//
+-- Create table with all information about movie_len adn datawarehouse
+CREATE TABLE data_ml_mlgt AS
+SELECT dw."movieId" as ml_id, dw.imdb_id, dw.title_id as dw_id , mm.title as primary_title
+       ,mm.genres, mr.rating, mr."userId" as user_id, mr.timestamp as rating_time
+--        ,mg.relevance as rating_relevance,  mgt."tagId" as tag_id
+--        ,  mgt.tag as tag_name
+--        ,mt.timestamp as tag_time ,mt.tag as tag_user_mv
+FROM ml_movies mm
+left join ml_dw_imdb dw on imdb_id = mm."movieId"
+left join ml_ratings mr on dw."movieId" = mr."movieId"
+-- left join ml_genome_scores mg on mg."movieId" = mm."movieId"
+-- left join ml_genome_tags mgt on mg."tagId" = mgt."tagId"
+-- left join ml_tags mt on dw."movieId" = mt."movieId" and mt."userId" = mr."userId"+
+;
 
+-- //-------------------------------------------------------------------//
+-- //------------   CHECK MOVIES IN DIM_TITLES DW     ------------------//
+-- //-------------------------------------------------------------------//
 -- Looking information about the movies in data warehouse
 CREATE TABLE ml_dw_imdb AS
 with get_imdb_id as (
@@ -46,55 +64,47 @@ with get_imdb_id as (
              left join ml_links l on m."movieId" = l."movieId"
 ) select i."movieId", i.imdb_id, t.title_id
 from get_imdb_id i
-left join pro.dim_titles t on t.imdb_id = i.imdb_id;
--- count(*) 62189
-
-SELECT count(*) FROM ml_dw_imdb;
-
--- //-------------------------------------------------------------------//
--- //------------      ------------------//
--- //-------------------------------------------------------------------//
--- Create table with all information about movie_len adn datawarehouse
-CREATE TABLE data_ml_mlgt AS
-SELECT dw."movieId" as ml_id, dw.imdb_id, dw.title_id as dw_id , mm.title as primary_title
-       ,mm.genres, mr.rating, mr."userId" as user_id, mr.timestamp as rating_time
-       ,mg.relevance as rating_relevance,  mgt."tagId" as tag_id
-       ,  mgt.tag as tag_name
---        ,mt.timestamp as tag_time ,mt.tag as tag_user_mv
-FROM ml_movies mm
-left join ml_dw_imdb dw on imdb_id = mm."movieId"
-left join ml_ratings mr on dw."movieId" = mr."movieId"
-left join ml_genome_scores mg on mg."movieId" = mm."movieId"
-left join ml_genome_tags mgt on mg."tagId" = mgt."tagId"
--- left join ml_tags mt on dw."movieId" = mt."movieId" and mt."userId" = mr."userId"+
-;
-
--- //-------------------------------------------------------------------//
--- //------------   CHECK MOVIES IN DIM_TITLES DW     ------------------//
--- //-------------------------------------------------------------------//
--- count pelis  no registradas 9375
-with aux as (
-    select * from ml_dw_imdb where title_id is null
-)SELECT count(*) FROM aux;
+         left join pro.dim_titles t on t.imdb_id = i.imdb_id;
+-- count(*) 62189 ml_dw_imdb
 
 
 -- Insert new titles from movie_len in datawarehouse
 -- INSERT INTO pro.dim_titles as
-SELECT m.title, ml.imdb_id
-FROM ml_movies m
-left join ml_dw_imdb ml on m."movieId" = ml."movieId"
-left join pro.dim_titles t on  t.primary_title = m.title
-where t.title_id is null
+CREATE TABLE titles as
+with aux as (
+    select  "movieId" as ml_id, imdb_id, title_id, title_id::integer as release_year, title_id as primary_title
+    from ml_dw_imdb
+    where title_id is null
+    )SELECT * FROM aux a
+                       left join ml_movies m on a.ml_id = m."movieId"
+--                        left join pro.dim_titles t on  t.primary_title = m.title or t.original_title = m.title
+;
+-- Numero de peliculas que no estan en el datawarehouse son 9375
+
+-- Update release year in titles
+UPDATE  titles t1 set release_year = SUBSTRING( t2.title, '([0-9]{4})' )::integer
+FROM titles t2
+where t1.ml_id =t2.ml_id;
+
+select min(release_year), max(release_year)
+from titles
 ;
 
--- //---------------------------------
--- Insert news movies
-with aux as (Select "movieid" as ml_id, imdb_id
-from ml_dw_imdb
-    where title_id is null
-    ) select m."movieId", a.imdb_id, m.title as primary_title
-from aux a
-left join ml_movies m on ml_id = "movieId";
+-- Get release date from title string and right values will be date > 1873 and date < 2020
+select *
+from titles
+where release_year < 1873 and release_year>2020;
+
+-- Insert primary_title in titles
+UPDATE  titles t1 set primary_title =  split_part(t2.title,' (',1)
+FROM titles t2
+where t1.ml_id =t2.ml_id;
+
+-- Insert news titles in dw dim_titles
+INSERT INTO PRO.dim_titles( primary_title, original_title, release_year, imdb_id)
+select t.primary_title, t.primary_title as original_title, release_year, imdb_id
+from titles t
+;
 
 -- //-------------------------------------------------------------------//
 -- //------------      CREATE TEMP VIEWS GENRES       ------------------//
