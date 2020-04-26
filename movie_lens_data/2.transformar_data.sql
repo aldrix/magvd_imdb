@@ -197,3 +197,11 @@ from genres2 g
          left join  pro.dim_genres d on d.genres = g.genres
 where d.genres_id is null and g.genres != '(no genres listed)'
 ;
+
+-- //-------------------------------------------------------------------//
+-- //------------      CREATE USER DIM    ??   ------------------//
+-- //-------------------------------------------------------------------//
+-- Necesito crear una dim_user?
+SELECT  *
+from ml_ratings r
+left join ml_tags mt on r."userId" = mt."userId";

@@ -87,4 +87,12 @@ ORDER BY movie_totals  DESC
 ;
 
 
+-- Valoraciones mínima, promedio y máxima de una película o alguno de sus atributos.
+-- Valoración promedio de los usuarios para las películas por Productora, Director, Género y Actores.
+-- Número de valoraciones de usuarios emitidas por Título, Género, Director, Productora, Actor.
+-- Actores cuyas películas han sido mejor valoradas junto con la calificación media de sus películas.
+-- Películas más votadas por los Usuarios indicando el número de votos recibidos y la puntuación media.
+-- Número de películas de cada Género estrenadas en un periodo determinado.
+
+
 

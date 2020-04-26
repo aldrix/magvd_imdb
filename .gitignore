@@ -33,3 +33,13 @@ out/
 /.idea
 .idea/
 **/*.tsv
+**.csv
+**/*.csv
+**/.ipynb_checkpoints
+notebook_support
+imdb_data
+env
+env
+env/ls
+notebook_support
+**.ipynb_checkpoints/
